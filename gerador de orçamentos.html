@@ -1,0 +1,162 @@
+<html><head><base href="https://www.mecanicaexpress.com/">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerador de Orçamentos - Mecânica Express</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: #3f3f3f;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        form {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        input[type="text"], input[type="date"], input[type="number"] {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        button {
+            background-color: #0445c9;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Gerador de Orçamentos</h1>
+        <form id="orcamentoForm">
+            <label for="ordemServico">Ordem de Serviço:</label>
+            <input type="text" id="ordemServico" required>
+
+            <label for="mecanico">Mecânico:</label>
+            <input type="text" id="mecanico" required>
+
+            <label for="consultor">Consultor:</label>
+            <input type="text" id="consultor" required>
+
+            <label for="data">Data:</label>
+            <input type="date" id="data" required>
+
+            <h2>Itens do Orçamento</h2>
+            <table id="itensTable">
+                <thead>
+                    <tr>
+                        <th>Peça</th>
+                        <th>Quantidade</th>
+                        <th>Tempo de Mão de Obra (horas)</th>
+                        <th>Ação</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><input type="text" class="peca"></td>
+                        <td><input type="number" class="quantidade" min="1"></td>
+                        <td><input type="number" class="tempoMaoObra" min="0" step="0.5"></td>
+                        <td><button type="button" onclick="removerLinha(this)">Remover</button></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <button type="button" onclick="adicionarLinha()">Adicionar Item</button>
+            <button type="button" onclick="gerarPDF()">Gerar PDF</button>
+        </form>
+    </div>
+
+    <script>
+        function adicionarLinha() {
+            const tbody = document.querySelector('#itensTable tbody');
+            const newRow = tbody.insertRow();
+            newRow.innerHTML = `
+                <td><input type="text" class="peca"></td>
+                <td><input type="number" class="quantidade" min="1"></td>
+                <td><input type="number" class="tempoMaoObra" min="0" step="0.5"></td>
+                <td><button type="button" onclick="removerLinha(this)">Remover</button></td>
+            `;
+        }
+
+        function removerLinha(button) {
+            const row = button.parentNode.parentNode;
+            row.parentNode.removeChild(row);
+        }
+
+        function gerarPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            // Adicionar cabeçalho
+            doc.setFontSize(18);
+            doc.text('Orçamento', 105, 15, null, null, 'center');
+
+            // Adicionar informações do orçamento
+            doc.setFontSize(12);
+            doc.text(`Ordem de Serviço: ${document.getElementById('ordemServico').value}`, 20, 30);
+            doc.text(`Mecânico: ${document.getElementById('mecanico').value}`, 20, 40);
+            doc.text(`Consultor: ${document.getElementById('consultor').value}`, 20, 50);
+            doc.text(`Data: ${document.getElementById('data').value}`, 20, 60);
+
+            // Preparar dados da tabela
+            const tableData = [];
+            const rows = document.querySelectorAll('#itensTable tbody tr');
+            rows.forEach(row => {
+                const peca = row.querySelector('.peca').value;
+                const quantidade = row.querySelector('.quantidade').value;
+                const tempoMaoObra = row.querySelector('.tempoMaoObra').value;
+                tableData.push([peca, quantidade, tempoMaoObra]);
+            });
+
+            // Adicionar tabela ao PDF
+            doc.autoTable({
+                startY: 70,
+                head: [['Peça', 'Quantidade', 'Tempo de Mão de Obra (horas)']],
+                body: tableData,
+            });
+
+            // Salvar o PDF
+            doc.save('VNZJEEP.pdf');
+        }
+    </script>
+</body>
+</html>
